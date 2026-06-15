@@ -1,0 +1,33 @@
+# Configurazione di deploy del Server CitySync su Fly.io.
+# Se "citysync-server" è già preso, cambia il nome qui sotto E in mobile/eas.json.
+app = "citysync-server"
+primary_region = "fra"   # Frankfurt (vicino all'Italia)
+
+[build]
+
+[env]
+  PORT = "4000"
+  CITYSYNC_DB = "/data/citysync.db"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = "stop"   # spegne la macchina quando inattiva (risparmio)
+  auto_start_machines = true    # la riaccende alla prima richiesta
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "20s"
+    timeout = "3s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/api/health"
+
+# Volume persistente per il database SQLite (i dati sopravvivono ai riavvii/deploy).
+[mounts]
+  source = "citysync_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

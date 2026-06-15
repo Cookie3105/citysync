@@ -1,0 +1,22 @@
+{
+  "name": "citysync-server",
+  "version": "2.0.0",
+  "private": true,
+  "description": "CitySync - Server (API Server + business modules + SQLite persistence). Sprint 2.",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node --experimental-sqlite src/index.js",
+    "dev": "node --watch --experimental-sqlite src/index.js",
+    "seed": "node --experimental-sqlite src/persistence/seed.js",
+    "reset": "node --experimental-sqlite src/persistence/seed.js --reset"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "morgan": "^1.10.0"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
