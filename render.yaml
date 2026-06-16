@@ -1,0 +1,29 @@
+# Blueprint Render.com per il Server CitySync.
+# Web service Docker, piano FREE (nessuna carta richiesta).
+#
+# Deploy: https://dashboard.render.com -> New -> Blueprint -> seleziona il repo
+# Cookie3105/citysync. Render legge questo file e crea il servizio.
+#
+# NB piano free: disco effimero (il DB SQLite si resetta ai riavvii/spin-down;
+# il server ri-esegue il seed quando il DB e' vuoto) e cold start ~30-60s dopo
+# ~15 min di inattivita'.
+services:
+  - type: web
+    name: citysync-server
+    runtime: docker
+    repo: https://github.com/Cookie3105/citysync
+    branch: main
+    # Il Dockerfile e il contesto di build vivono nella cartella server/.
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    region: frankfurt
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Percorso DB scrivibile sul piano free (la /data di Fly qui non esiste).
+      # Render inietta PORT da solo: il server usa process.env.PORT.
+      - key: CITYSYNC_DB
+        value: /app/citysync.db
