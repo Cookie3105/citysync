@@ -3,8 +3,13 @@
 const { all, get, run, tx } = require('../../persistence/db');
 const { genId, today, nowTime, nowIso, badRequest, notFound, conflict } = require('../../lib/util');
 const {
-  StatoMezzo, StatoPrenotazione, PRENOTAZIONE_DURATA_MIN, PRENOTAZIONE_SOGLIA_ANOMALIA_MIN,
+  StatoMezzo, StatoPrenotazione, TipoMezzo, PRENOTAZIONE_DURATA_MIN, PRENOTAZIONE_SOGLIA_ANOMALIA_MIN,
 } = require('../../domain/enums');
+
+// Verifica se l'utente ha una patente caricata (UT.07). Requisito per le auto.
+function haPatente(idUtente) {
+  return !!get(`SELECT 1 FROM Patente WHERE idUtente = ? LIMIT 1`, idUtente);
+}
 
 // UT.02 - Prenotare mezzo.
 function crea({ idUtente, idMezzo }) {
@@ -12,6 +17,10 @@ function crea({ idUtente, idMezzo }) {
   return tx(() => {
     const mezzo = get(`SELECT * FROM Mezzo WHERE idMezzo = ?`, idMezzo);
     if (!mezzo) throw notFound('Mezzo non trovato');
+    // Le auto richiedono la patente caricata (UT.07): senza patente non si prenota.
+    if (mezzo.tipoMezzo === TipoMezzo.AUTO && !haPatente(idUtente)) {
+      throw badRequest('Per prenotare un\'auto devi prima inserire la patente nel tuo profilo.');
+    }
     // verificaDisponibilita()
     if (mezzo.statOperativo !== StatoMezzo.DISPONIBILE) {
       throw conflict('Il mezzo non è disponibile per la prenotazione');

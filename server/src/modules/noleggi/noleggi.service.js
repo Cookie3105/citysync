@@ -5,7 +5,7 @@ const { all, get, run, tx } = require('../../persistence/db');
 const {
   genId, today, nowTime, nowIso, badRequest, notFound, conflict,
 } = require('../../lib/util');
-const { StatoMezzo, StatoNoleggio, StatoPrenotazione, Tariffario } = require('../../domain/enums');
+const { StatoMezzo, StatoNoleggio, StatoPrenotazione, TipoMezzo, Tariffario } = require('../../domain/enums');
 const { IServiziMezzo } = require('../../external/serviziMezzo');
 const { IPaymentGateway } = require('../../external/paymentGateway');
 const { IMapProvider } = require('../../external/mapProvider');
@@ -15,6 +15,11 @@ const pagamentiSvc = require('../pagamenti/pagamenti.service');
 
 // Consumo energetico stimato per minuto, per tipo di mezzo (%).
 const CONSUMO_MIN = { bici: 0.3, escooter: 0.5, auto: 0.2 };
+
+// Verifica se l'utente ha una patente caricata (UT.07). Requisito per le auto.
+function haPatente(idUtente) {
+  return !!get(`SELECT 1 FROM Patente WHERE idUtente = ? LIMIT 1`, idUtente);
+}
 
 // --- UT.03: stima preventiva del costo ---------------------------------------
 function stimaCosto({ idMezzo, destinazione, durataMin }) {
@@ -51,6 +56,11 @@ async function avvia({ idUtente, idMezzo, idPrenotazione }) {
 
   const mezzo = get(`SELECT * FROM Mezzo WHERE idMezzo = ?`, idMezzo);
   if (!mezzo) throw notFound('Mezzo non trovato');
+
+  // Le auto richiedono la patente caricata (UT.07): senza patente non si noleggia.
+  if (mezzo.tipoMezzo === TipoMezzo.AUTO && !haPatente(idUtente)) {
+    throw badRequest('Per noleggiare un\'auto devi prima inserire la patente nel tuo profilo.');
+  }
 
   // Un utente può avere un solo noleggio attivo alla volta.
   const giaAttivo = get(
