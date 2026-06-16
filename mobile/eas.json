@@ -10,7 +10,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://citysync-server.fly.dev"
+        "EXPO_PUBLIC_API_URL": "https://citysync-server.onrender.com"
       }
     },
     "preview-locale": {
