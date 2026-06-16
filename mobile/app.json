@@ -36,7 +36,14 @@
           "locationWhenInUsePermission": "CitySync usa la tua posizione per mostrarti i mezzi disponibili nelle vicinanze."
         }
       ],
-      "expo-font",
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/material-community.ttf"
+          ]
+        }
+      ],
       "expo-asset"
     ],
     "extra": {
